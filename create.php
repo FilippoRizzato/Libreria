@@ -1,31 +1,40 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
+
 <?php
-$db = new PDO('mysql:host=localhost;dbname=itis','root','',[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_OBJ]);
-//var_dump($db);
-$query='INSERT INTO studenti(matricola_studente,nome,cognome,media,data_iscrizione) VALUES(:matricola_studente,:nome,:cognome,:media,NOW())';
-try{
-    $stm = $db->prepare($query);
-    $stm->bindValue(':matricola_studente', '00010');
-    $stm->bindValue(':nome', 'Lucy');
-    $stm->bindValue(':cognome', 'Taylor');
-    $stm->bindValue(':media', 8);
-    if($stm->execute())
-        $stm->closeCursor();
-    else
-        throw new PDOException('ERROR nella query');
-}catch(Exception $e){
-    logError($e);
+try {
+    include 'db_connection.php';
+} catch (Exception $e) {
+    echo "Errore nell'includere il file di connessione al database: " . $e->getMessage();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $titolo = $_POST['titolo'];
+    $autore = $_POST['autore'];
+    $genere = $_POST['genere'];
+    $prezzo = $_POST['prezzo'];
+    $anno = $_POST['anno'];
+
+    $sql = "INSERT INTO libri (titolo, autore, genere, prezzo, anno) VALUES (:titolo, :autore, :genere, :prezzo, :anno)";
+    $stmt = $db->prepare($sql);
+
+    $stmt->bindValue(':titolo', $titolo);
+    $stmt->bindValue(':autore', $autore);
+    $stmt->bindValue(':genere', $genere);
+    $stmt->bindValue(':prezzo', $prezzo);
+    $stmt->bindValue(':anno', $anno);
+
+    if ($stmt->execute()) {
+        echo "Nuovo libro aggiunto con successo";
+    } else {
+        echo "Errore durante l'inserimento del libro";
+    }
 }
 ?>
 
-</body>
-</html>
+<form method="post" action="create.php">
+    Titolo: <input type="text" name="titolo" required><br>
+    Autore: <input type="text" name="autore" required><br>
+    Genere: <input type="text" name="genere" required><br>
+    Prezzo: <input type="number" step="0.01" name="prezzo" required><br>
+    Anno: <input type="number" name="anno" required><br>
+    <input type="submit" value="Aggiungi libro">
+</form>
